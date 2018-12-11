@@ -30,13 +30,14 @@ import javax.net.ssl.SSLEngine;
 import javax.net.ssl.SSLSession;
 import javax.net.ssl.SSLSocket;
 import javax.net.ssl.X509ExtendedKeyManager;
+import javax.net.ssl.X509KeyManager;
 
 import org.eclipse.jetty.util.log.Log;
 import org.eclipse.jetty.util.log.Logger;
 
 /**
  * <p>A {@link X509ExtendedKeyManager} that selects a key with an alias
- * retrieved from SNI information, delegating other processing to a nested X509ExtendedKeyManager.</p>
+ * retrieved from SNI information, delegating other processing to a nested X509KeyManager.</p>
  * <p>Can only be used on server side.</p>
  */
 public class SniX509ExtendedKeyManager extends X509ExtendedKeyManager
@@ -45,9 +46,9 @@ public class SniX509ExtendedKeyManager extends X509ExtendedKeyManager
     private static final String NO_MATCHERS = "no_matchers";
     private static final Logger LOG = Log.getLogger(SniX509ExtendedKeyManager.class);
 
-    private final X509ExtendedKeyManager _delegate;
+    private final X509KeyManager _delegate;
 
-    public SniX509ExtendedKeyManager(X509ExtendedKeyManager keyManager)
+    public SniX509ExtendedKeyManager(X509KeyManager keyManager)
     {
         _delegate = keyManager;
     }
@@ -61,7 +62,9 @@ public class SniX509ExtendedKeyManager extends X509ExtendedKeyManager
     @Override
     public String chooseEngineClientAlias(String[] keyType, Principal[] issuers, SSLEngine engine)
     {
-        return _delegate.chooseEngineClientAlias(keyType,issuers,engine);
+        return (_delegate instanceof X509ExtendedKeyManager)
+                ? ((X509ExtendedKeyManager) _delegate).chooseEngineClientAlias(keyType,issuers,engine)
+                : null;
     }
 
     protected String chooseServerAlias(String keyType, Principal[] issuers, Collection<SNIMatcher> matchers, SSLSession session)
@@ -124,7 +127,9 @@ public class SniX509ExtendedKeyManager extends X509ExtendedKeyManager
     {
         String alias = engine==null?NO_MATCHERS:chooseServerAlias(keyType,issuers,engine.getSSLParameters().getSNIMatchers(),engine.getHandshakeSession());
         if (alias==NO_MATCHERS)
-            alias=_delegate.chooseEngineServerAlias(keyType,issuers,engine);
+            alias=(_delegate instanceof X509ExtendedKeyManager)
+                    ? ((X509ExtendedKeyManager) _delegate).chooseEngineServerAlias(keyType,issuers,engine)
+                    : null;
         if (LOG.isDebugEnabled())
             LOG.debug("Chose alias {}/{} on {}",alias,keyType,engine);
         return alias;

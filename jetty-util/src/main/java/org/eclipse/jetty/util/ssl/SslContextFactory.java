@@ -1201,8 +1201,8 @@ public class SslContextFactory extends AbstractLifeCycle implements Dumpable
                 {
                     for (int idx = 0; idx < managers.length; idx++)
                     {
-                        if (managers[idx] instanceof X509ExtendedKeyManager)
-                            managers[idx] = new SniX509ExtendedKeyManager((X509ExtendedKeyManager)managers[idx]);
+                        if (managers[idx] instanceof X509KeyManager)
+                            managers[idx] = new SniX509ExtendedKeyManager((X509KeyManager)managers[idx]);
                     }
                 }
             }
