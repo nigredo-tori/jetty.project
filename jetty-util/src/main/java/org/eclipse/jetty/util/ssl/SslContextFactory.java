@@ -70,6 +70,7 @@ import javax.net.ssl.StandardConstants;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509ExtendedKeyManager;
+import javax.net.ssl.X509KeyManager;
 import javax.net.ssl.X509TrustManager;
 
 import org.eclipse.jetty.util.StringUtil;
@@ -1190,8 +1191,8 @@ public class SslContextFactory extends AbstractLifeCycle implements Dumpable
                 {
                     for (int idx = 0; idx < managers.length; idx++)
                     {
-                        if (managers[idx] instanceof X509ExtendedKeyManager)
-                            managers[idx] = new AliasedX509ExtendedKeyManager((X509ExtendedKeyManager)managers[idx], alias);
+                        if (managers[idx] instanceof X509KeyManager)
+                            managers[idx] = new AliasedX509ExtendedKeyManager((X509KeyManager)managers[idx], alias);
                     }
                 }
 

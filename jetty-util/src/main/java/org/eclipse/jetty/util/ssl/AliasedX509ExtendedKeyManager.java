@@ -25,24 +25,25 @@ import java.security.cert.X509Certificate;
 
 import javax.net.ssl.SSLEngine;
 import javax.net.ssl.X509ExtendedKeyManager;
+import javax.net.ssl.X509KeyManager;
 
 /**
  * <p>An {@link X509ExtendedKeyManager} that select a key with desired alias,
- * delegating other processing to a nested X509ExtendedKeyManager.</p>
+ * delegating other processing to a nested X509KeyManager.</p>
  * <p>Can be used both with server and client sockets.</p>
  */
 public class AliasedX509ExtendedKeyManager extends X509ExtendedKeyManager
 {
     private final String _alias;
-    private final X509ExtendedKeyManager _delegate;
+    private final X509KeyManager _delegate;
 
-    public AliasedX509ExtendedKeyManager(X509ExtendedKeyManager keyManager, String keyAlias)
+    public AliasedX509ExtendedKeyManager(X509KeyManager keyManager, String keyAlias)
     {
         _alias = keyAlias;
         _delegate = keyManager;
     }
 
-    public X509ExtendedKeyManager getDelegate()
+    public X509KeyManager getDelegate()
     {
         return _delegate;
     }
@@ -112,7 +113,11 @@ public class AliasedX509ExtendedKeyManager extends X509ExtendedKeyManager
     public String chooseEngineServerAlias(String keyType, Principal[] issuers, SSLEngine engine)
     {
         if (_alias==null)
-            return _delegate.chooseEngineServerAlias(keyType,issuers,engine);
+        {
+            return (_delegate instanceof X509ExtendedKeyManager)
+                    ? ((X509ExtendedKeyManager) _delegate).chooseEngineServerAlias(keyType,issuers,engine)
+                    : null;
+        }
 
         String[] aliases = _delegate.getServerAliases(keyType,issuers);
         if (aliases!=null)
@@ -129,7 +134,11 @@ public class AliasedX509ExtendedKeyManager extends X509ExtendedKeyManager
     public String chooseEngineClientAlias(String keyType[], Principal[] issuers, SSLEngine engine)
     {
         if (_alias==null)
-            return _delegate.chooseEngineClientAlias(keyType,issuers,engine);
+        {
+            return (_delegate instanceof X509ExtendedKeyManager)
+                    ? ((X509ExtendedKeyManager) _delegate).chooseEngineClientAlias(keyType,issuers,engine)
+                    : null;
+        }
 
         for (String kt : keyType)
         {
